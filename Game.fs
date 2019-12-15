@@ -3,6 +3,7 @@
 module Game =
     open System
     open Configuration
+    open System.Windows.Forms
 
     let GetWord = 
         let random = Random()
@@ -48,46 +49,53 @@ module Game =
         |h::t when not(CheckGuess word h) -> GetCorrectGuesses word t
         |_ -> []
    
-    let PlayGame () = 
-        printfn "Welcome to Word Guesser"
-        printfn ""
-        printfn "To use help press Ctrl+h. Help is enabled: %b" HELP
-        printfn ""
-        let mutable playTurn = true // Boolian to determine when game should continue and when stop.
-        let word = GetWord; // Word(string) to guess which is randomly got from an array of words.
-        let wordList = Seq.toList word; // Char list of word characters.
-        let mutable guesses = [] // String list of guesses. It also includes guess when help is called.
+    
+    let word = GetWord; // Word(string) to guess which is randomly got from an array of words.
+    let wordList = Seq.toList word; // Char list of word characters.
+    let mutable guesses = [] // String list of guesses. It also includes guess when help is called.
+    let mutable display = new TextBox(Dock=DockStyle.Top, Multiline=true, ScrollBars = ScrollBars.Both, Height=200, Text="The lenght of word: " + wordList.Length.ToString(), Enabled=false)
+    let mutable form = new Form(Text = "Word guesser")
+    let mutable inputTb = new TextBox(Dock=DockStyle.Top)
 
-        printfn "The lenght of word: %i" wordList.Length
-        printfn ""
-        while playTurn do      // Main game loop that iterates each time user provides character.
-            printfn "Waiting for a guess..."
-            let input = ReadInput wordList guesses; // User input which is got from ReadInput function. Input is char array.
-
-            if(input.Length=1) then // if input is one character.
-                if(List.contains (input.[0].ToString()) guesses = false) // if same guess is guessed multiple times, it doesn't add to the guesses list,
-                                                                        // so same guess multiple times will count as an one guess.
-                    then
-                        guesses <- input.[0].ToString() :: guesses // Add guess to the list.
-            elif(input.Length>1 && MULTIPLE) then // If input contains multiple characters and program is set to allow multiple characters.
-                if(List.contains (String.Concat(Array.ofList(input))) guesses = false)// Here it also checks if same guess already exists.
-                                                            // Input is an char array of characters, so 
-                                                            // before checking if guess already exists, it needs to add all characters in one string.
-                    then
-                        guesses <- (String.Concat(Array.ofList(input))) :: guesses//Add guess to the list.
-
-            let guessedWord = GetCorrectGuesses word guesses |> String.Concat // Returns a string of characters that are in guesses list AND in a word.
-            let displayWord = CorrectOrder wordList guessedWord |> String.Concat // Returns guessedWord string in same order as an word that needs to be guessed.
-                                                                        // If guessedWord doesn't contain character(s) that is in the acutal word, it will be raplaced with hidden character.
-
-            if(displayWord.Contains(HIDDEN))// If displayWord contains hidden characters, program will print word and start loop again.
-            then
-                printfn ""
-                printfn "%s" displayWord
-            else// If there is no more hidden characters in the word it means that the word was guessed and game is finished.
-                printfn ""
-                printfn "%s" displayWord
-                printfn "You won. Used guesses: %i" guesses.Length// Print how many times user guessed
-                printfn "Press enter to exit"
-                Console.ReadLine()
-                playTurn <- false // Stop loop when word is guessed.
+    let PlayGame(inputString:string) =
+        
+        let input = Seq.toList inputString
+        if(input.Length=1) then // if input is one character.
+            if(List.contains (input.[0].ToString()) guesses = false) // if same guess is guessed multiple times, it doesn't add to the guesses list,
+                                                                    // so same guess multiple times will count as an one guess.
+                then
+                    guesses <- input.[0].ToString() :: guesses // Add guess to the list.
+        elif(input.Length>1 && MULTIPLE) then // If input contains multiple characters and program is set to allow multiple characters.
+            if(List.contains (String.Concat(Array.ofList(input))) guesses = false)// Here it also checks if same guess already exists.
+                                                        // Input is an char array of characters, so 
+                                                        // before checking if guess already exists, it needs to add all characters in one string.
+                then
+                    guesses <- (String.Concat(Array.ofList(input))) :: guesses//Add guess to the list.
+    
+        let guessedWord = GetCorrectGuesses word guesses |> String.Concat // Returns a string of characters that are in guesses list AND in a word.
+        let displayWord = CorrectOrder wordList guessedWord |> String.Concat // Returns guessedWord string in same order as an word that needs to be guessed.
+                                                       // If guessedWord doesn't contain character(s) that is in the acutal word, it will be raplaced with hidden character.
+        printf ""// form.Controls.Find("display",true) = "aa"
+        if(displayWord.Contains(HIDDEN))// If displayWord contains hidden characters, program will print word and start loop again.
+        then
+            display.Text <- display.Text + "\r\n" + displayWord
+            display.SelectionStart <- display.Text.Length
+            display.ScrollToCaret()
+            inputTb.Text <- ""
+        else// If there is no more hidden characters in the word it means that the word was guessed and game is finished.
+            display.Text <- display.Text + "\r\n" + displayWord + "\r\nYou won. Used guesses: " + guesses.Length.ToString()
+            display.SelectionStart <- display.Text.Length            
+            display.ScrollToCaret()
+            inputTb.Text <- ""
+    
+    // Setup and start GUI
+    let Setup =                    
+        let button = new Button(Text = "Guess", Dock = DockStyle.Bottom)
+                //button.Click.Add(fun _ -> Application.Exit() |> ignore)
+        button.Click.Add(fun _ -> PlayGame inputTb.Text |> ignore)
+                        
+        form.Controls.Add(display)
+        form.Controls.Add(inputTb)
+        form.Controls.Add(button)
+                // form.Show()
+        Application.Run(form)

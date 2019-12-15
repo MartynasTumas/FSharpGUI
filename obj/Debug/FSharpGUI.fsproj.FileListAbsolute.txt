@@ -21,3 +21,4 @@ C:\Users\Martynas\source\repos\FSharpGUI\FSharpGUI\bin\Debug\zh-Hant\FSharp.Core
 C:\Users\Martynas\source\repos\FSharpGUI\FSharpGUI\obj\Debug\FSharpGUI.fsproj.CopyComplete
 C:\Users\Martynas\source\repos\FSharpGUI\FSharpGUI\obj\Debug\FSharpGUI.exe
 C:\Users\Martynas\source\repos\FSharpGUI\FSharpGUI\obj\Debug\FSharpGUI.pdb
+C:\Users\Martynas\source\repos\FSharpGUI\FSharpGUI\obj\Debug\FSharpGUI.fsprojAssemblyReference.cache
